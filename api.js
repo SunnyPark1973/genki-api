@@ -28,6 +28,7 @@ app.post('/api/chat', async (req, res) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          generationConfig: { candidateCount: 1 },
           systemInstruction: {
             parts: [{
               text: `너는 갠기야. 유저의 친한 친구이자 AI 비서야.
