@@ -11,10 +11,18 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { messages, userName } = req.body;
 
-    const history = messages.map(m => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }],
-    }));
+    // user로 시작하도록 필터링
+    const history = messages
+      .filter(m => m.role === 'user' || m.role === 'assistant')
+      .map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }],
+      }));
+
+    // 첫 메시지가 user가 아니면 제거
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
+    }
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
