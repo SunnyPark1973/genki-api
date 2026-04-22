@@ -11,7 +11,9 @@ app.post('/api/chat', async (req, res) => {
   try {
     const { messages, userName } = req.body;
 
-    // user로 시작하도록 필터링
+    console.log('API KEY 존재:', !!GEMINI_API_KEY);
+    console.log('받은 messages 수:', messages?.length);
+
     const history = messages
       .filter(m => m.role === 'user' || m.role === 'assistant')
       .map(m => ({
@@ -19,10 +21,12 @@ app.post('/api/chat', async (req, res) => {
         parts: [{ text: m.content }],
       }));
 
-    // 첫 메시지가 user가 아니면 제거
     while (history.length > 0 && history[0].role !== 'user') {
       history.shift();
     }
+
+    console.log('필터링 후 history 수:', history.length);
+    console.log('첫 번째 role:', history[0]?.role);
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -45,10 +49,14 @@ app.post('/api/chat', async (req, res) => {
       }
     );
 
+    console.log('Gemini 응답 상태:', response.status);
     const data = await response.json();
+    console.log('Gemini 응답:', JSON.stringify(data).slice(0, 200));
+
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '미안, 잘 못들었어 😅';
     res.json({ text });
   } catch (e) {
+    console.log('에러:', e.message);
     res.status(500).json({ error: '서버 오류' });
   }
 });
